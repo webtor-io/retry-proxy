@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net"
@@ -179,7 +178,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 				}
 			}
 
-			rrr := r.Clone(context.Background())
+			rrr := r.Clone(r.Context())
 			rrr.URL.Host = re.Host
 			rrr.URL.Scheme = re.Scheme
 			rrr.RequestURI = ""
@@ -196,7 +195,10 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 					ri = retryInterval
 					ow = wi.bytesWritten
 				}
-				if err != nil && rr < retries {
+				if r.Context().Err() != nil {
+					log.WithError(r.Context().Err()).Warn("got context error")
+					break
+				} else if err != nil && rr < retries {
 					log.WithError(err).Warn("got finalize error")
 					rr++
 					ri *= 2
