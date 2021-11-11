@@ -77,7 +77,7 @@ func (s *MyTransport) RoundTrip(req *http.Request) (resp *http.Response, err err
 			break
 		} else if err != nil && r < retries {
 			log.WithError(err).Infof("got roundtrip error url=%v", req.URL)
-			log.Infof("retry after duration=%v url=%v", time.Duration(ri)*time.Millisecond, r.URL)
+			log.Infof("retry after duration=%v url=%v", time.Duration(ri)*time.Millisecond, req.URL)
 			<-time.After(time.Duration(ri) * time.Millisecond)
 			r++
 			ri *= 2
