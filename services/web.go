@@ -72,7 +72,10 @@ func (s *MyTransport) RoundTrip(req *http.Request) (resp *http.Response, err err
 	ri := retryInterval
 	for {
 		resp, err = s.Transport.RoundTrip(req)
-		if err != nil && r < retries {
+		if req.Context().Err() != nil {
+			log.WithError(err).Info("got context error")
+			break
+		} else if err != nil && r < retries {
 			log.WithError(err).Info("got roundtrip error")
 			<-time.After(time.Duration(ri) * time.Millisecond)
 			r++
