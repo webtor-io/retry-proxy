@@ -73,10 +73,11 @@ func (s *MyTransport) RoundTrip(req *http.Request) (resp *http.Response, err err
 	for {
 		resp, err = s.Transport.RoundTrip(req)
 		if req.Context().Err() != nil {
-			log.WithError(err).Info("got context error")
+			log.WithError(err).Infof("got context error url=%v", req.URL)
 			break
 		} else if err != nil && r < retries {
-			log.WithError(err).Info("got roundtrip error")
+			log.WithError(err).Infof("got roundtrip error url=%v", req.URL)
+			log.Infof("retry after duration=%v url=%v", time.Duration(ri)*time.Millisecond, r.URL)
 			<-time.After(time.Duration(ri) * time.Millisecond)
 			r++
 			ri *= 2
@@ -123,19 +124,19 @@ func finalizeRequest(cl *http.Client, etag string, start, end int, w http.Respon
 	// log.Infof("making finalize request=%v", r)
 	resp, err := cl.Do(r)
 	if err != nil {
-		return errors.Wrapf(err, "failed to perform request=%+v", r)
+		return errors.Wrapf(err, "failed to perform request url=%v range=%v-%v", r.URL, start, endStr)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 502 {
-		return errors.Errorf("got bad status code=%v", resp.StatusCode)
+		return errors.Errorf("got bad status code=%v url=%v range=%v-%v", resp.StatusCode, r.URL, start, endStr)
 	}
 	if resp.Header.Get("Etag") == "" || (etag != "" && resp.Header.Get("Etag") != etag) {
-		log.Warnf("etag changed old=%v new=%v", etag, resp.Header.Get("Etag"))
+		log.Warnf("etag changed old=%v new=%v url=%v", etag, resp.Header.Get("Etag"), r.URL)
 		return nil
 	}
 	_, err = io.Copy(w, resp.Body)
 	if err != nil {
-		return errors.Wrapf(err, "failed to copy body of request=%+v", r)
+		return errors.Wrapf(err, "failed to copy body of request url=%v range=%v-%v", r.URL, start, endStr)
 	}
 	return nil
 }
@@ -155,7 +156,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 			log.WithError(err).Warn("got abort error")
 		}
 		if wi.statusCode >= 500 {
-			log.Warnf("got status code=%v", wi.statusCode)
+			log.Warnf("got status code=%v url=%v", wi.statusCode, r.URL)
 		}
 		if (ar != "" && et != "") || wi.statusCode >= 502 {
 			start := 0
@@ -164,18 +165,18 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 			if ra != "" {
 				parts := strings.Split(strings.TrimPrefix(ra, "bytes="), "-")
 				if len(parts) != 2 {
-					log.Warnf("failed to parse %v", ra)
+					log.Warnf("failed to parse range=%v url=%v", ra, r.URL)
 					return
 				}
 				start, err = strconv.Atoi(parts[0])
 				if err != nil {
-					log.WithError(err).Warnf("failed to parse %v", ra)
+					log.WithError(err).Warnf("failed to parse %v url=%v", ra, r.URL)
 					return
 				}
 				if parts[1] != "" {
 					end, err = strconv.Atoi(parts[1])
 					if err != nil {
-						log.WithError(err).Warnf("failed to parse %v", ra)
+						log.WithError(err).Warnf("failed to parse %v url=%v", ra, r.URL)
 						return
 					}
 				}
@@ -199,13 +200,14 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 					ow = wi.bytesWritten
 				}
 				if r.Context().Err() != nil {
-					log.WithError(r.Context().Err()).Warn("got context error")
+					log.WithError(r.Context().Err()).Warnf("got context error url=%v", r.URL)
 					break
 				} else if err != nil && rr < retries {
 					log.WithError(err).Warn("got finalize error")
+					log.Infof("retry after duration=%v url=%v", time.Duration(ri)*time.Millisecond, r.URL)
+					<-time.After(time.Duration(ri) * time.Millisecond)
 					rr++
 					ri *= 2
-					<-time.After(time.Duration(ri) * time.Millisecond)
 				} else {
 					break
 				}
