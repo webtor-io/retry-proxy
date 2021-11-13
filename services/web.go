@@ -218,7 +218,11 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 
 func retryProxyHandler(cl *http.Client, re *url.URL) http.Handler {
 	pr := httputil.NewSingleHostReverseProxy(re)
+
+	prevDir := pr.Director
+
 	pr.Director = func(r *http.Request) {
+		prevDir(r)
 		// Discard header if it wasn't setted before
 		if r.Header.Get("X-Forwarded-For") == "" {
 			r.Header["X-Forwarded-For"] = nil
