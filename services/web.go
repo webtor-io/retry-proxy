@@ -218,6 +218,9 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 
 func retryProxyHandler(cl *http.Client, re *url.URL) http.Handler {
 	pr := httputil.NewSingleHostReverseProxy(re)
+	pr.Director = func(r *http.Request) {
+		r.Header["X-Forwarded-For"] = nil
+	}
 	mt := NewMyTransport()
 	pr.Transport = mt
 
