@@ -193,13 +193,20 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 			ow := 0
 			ri := retryInterval
 			for {
+				if end != -1 && start+wi.bytesWritten > end {
+					log.Warnf("start more then end start=%v end=%v url=%v", start+wi.bytesWritten, end, r.URL)
+					break
+				}
 				err = finalizeRequest(cl, et, start+wi.bytesWritten, end, wi, rrr)
 				if wi.bytesWritten > ow {
 					rr = 0
 					ri = retryInterval
 					ow = wi.bytesWritten
 				}
-				if r.Context().Err() != nil {
+				if err == http.ErrContentLength {
+					log.WithError(err).Warnf("got content length error url=%v", r.URL)
+					break
+				} else if r.Context().Err() != nil {
 					log.WithError(r.Context().Err()).Warnf("got context error url=%v", r.URL)
 					break
 				} else if err != nil && rr < retries {
