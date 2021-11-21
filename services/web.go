@@ -153,10 +153,10 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 		if r.Context().Err() != nil {
 			return
 		}
-		// if err != http.ErrAbortHandler && wi.statusCode < 500 {
-		// 	log.WithError(err).Warnf("got error with status code %v", wi.statusCode)
-		// 	return
-		// }
+		if err != http.ErrAbortHandler && wi.statusCode < 500 {
+			log.WithError(err).Warnf("got status code %v", wi.statusCode)
+			return
+		}
 		ar := wi.Header().Get("Accept-Ranges")
 		et := wi.Header().Get("Etag")
 		if err != nil {
