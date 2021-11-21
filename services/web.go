@@ -150,8 +150,11 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 		// log.Infof("got request %v", r)
 		wi := NewResponseWrtierInterceptor(w)
 		err := serveWithoutPanic(h, wi, r)
+		if r.Context().Err() != nil {
+			return
+		}
 		if err != http.ErrAbortHandler && wi.statusCode < 502 {
-			// log.WithError(err).Warnf("got error with status code %v", wi.statusCode)
+			log.WithError(err).Warnf("got error with status code %v", wi.statusCode)
 			return
 		}
 		ar := wi.Header().Get("Accept-Ranges")
@@ -211,7 +214,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 					log.WithError(err).Warnf("got content length error url=%v", r.URL)
 					break
 				} else if r.Context().Err() != nil {
-					log.WithError(r.Context().Err()).Warnf("got context error url=%v", r.URL)
+					// log.WithError(r.Context().Err()).Warnf("got context error url=%v", r.URL)
 					break
 				} else if err != nil && rr < retries {
 					log.WithError(err).Warn("got finalize error")
