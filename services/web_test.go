@@ -204,3 +204,22 @@ func TestProxyWithRangeRequestWithEnd(t *testing.T) {
 		t.Fatalf("Data mismatch")
 	}
 }
+
+func TestProxyWithBadRangeRequest(t *testing.T) {
+	ts := getTestServer(1, 0)
+	defer ts.Close()
+	u, _ := url.Parse(ts.URL)
+	ps := httptest.NewServer(retryProxyHandler(c, u))
+	defer ps.Close()
+	req, _ := http.NewRequest("GET", ps.URL+"/aaa", strings.NewReader(""))
+	start := len(test) + 1000
+	req.Header.Set("Range", fmt.Sprintf("bytes=%v-", start))
+	r, err := c.Do(req)
+	if err != nil {
+		t.Fatalf("Expected err==nil got %v", err)
+	}
+	if r.StatusCode != http.StatusRequestedRangeNotSatisfiable {
+		t.Fatalf("Expected StatsCode==%v got %v", http.StatusRequestedRangeNotSatisfiable, r.StatusCode)
+	}
+	defer r.Body.Close()
+}

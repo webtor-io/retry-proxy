@@ -130,6 +130,10 @@ func finalizeRequest(cl *http.Client, etag string, start, end int, w http.Respon
 	if resp.StatusCode >= 502 {
 		return errors.Errorf("got bad status code=%v url=%v range=%v-%v", resp.StatusCode, r.URL, start, endStr)
 	}
+	if resp.StatusCode >= 300 {
+		log.Warnf("got non 200 status code=%v url=%v", resp.StatusCode, r.URL)
+		return nil
+	}
 	if resp.Header.Get("Etag") == "" || (etag != "" && resp.Header.Get("Etag") != etag) {
 		log.Warnf("etag changed old=%v new=%v url=%v", etag, resp.Header.Get("Etag"), r.URL)
 		return nil
@@ -198,12 +202,12 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 					break
 				}
 				err = finalizeRequest(cl, et, start+wi.bytesWritten, end, wi, rrr)
-				if wi.bytesWritten > ow {
+				if wi.bytesWritten > ow && err != nil {
 					rr = 0
 					ri = retryInterval
 					ow = wi.bytesWritten
 				}
-				if err == http.ErrContentLength {
+				if errors.Cause(err) == http.ErrContentLength {
 					log.WithError(err).Warnf("got content length error url=%v", r.URL)
 					break
 				} else if r.Context().Err() != nil {
