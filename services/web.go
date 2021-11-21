@@ -154,7 +154,6 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 			return
 		}
 		if err != http.ErrAbortHandler && wi.statusCode < 500 {
-			log.WithError(err).Warnf("got status code %v", wi.statusCode)
 			return
 		}
 		ar := wi.Header().Get("Accept-Ranges")
