@@ -73,7 +73,7 @@ func (s *MyTransport) RoundTrip(req *http.Request) (resp *http.Response, err err
 	for {
 		resp, err = s.Transport.RoundTrip(req)
 		if req.Context().Err() != nil {
-			log.WithError(err).Infof("got context error url=%v", req.URL)
+			// log.WithError(err).Infof("got context error url=%v", req.URL)
 			break
 		} else if err != nil && r < retries {
 			log.WithError(err).Infof("got roundtrip error url=%v", req.URL)
