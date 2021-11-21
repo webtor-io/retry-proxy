@@ -202,7 +202,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 					break
 				}
 				err = finalizeRequest(cl, et, start+wi.bytesWritten, end, wi, rrr)
-				if wi.bytesWritten > ow+1024*100 {
+				if wi.bytesWritten > ow+1024*100 && errors.Cause(err) == io.ErrUnexpectedEOF {
 					rr = 0
 					ri = retryInterval
 					ow = wi.bytesWritten
