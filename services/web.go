@@ -127,7 +127,7 @@ func finalizeRequest(cl *http.Client, etag string, start, end int, w http.Respon
 		return errors.Wrapf(err, "failed to perform request url=%v range=%v-%v", r.URL, start, endStr)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode >= 502 {
+	if resp.StatusCode >= 500 {
 		return errors.Errorf("got bad status code=%v url=%v range=%v-%v", resp.StatusCode, r.URL, start, endStr)
 	}
 	if resp.StatusCode >= 300 {
@@ -162,7 +162,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 		if wi.statusCode >= 500 {
 			log.Warnf("got status code=%v url=%v", wi.statusCode, r.URL)
 		}
-		if (ar != "" && et != "") || wi.statusCode >= 502 {
+		if (ar != "" && et != "") || wi.statusCode >= 500 {
 			start := 0
 			end := -1
 			ra := r.Header.Get("Range")
@@ -202,7 +202,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 					break
 				}
 				err = finalizeRequest(cl, et, start+wi.bytesWritten, end, wi, rrr)
-				if wi.bytesWritten > ow && err != nil {
+				if wi.bytesWritten > ow && errors.Cause(err) == io.ErrUnexpectedEOF {
 					rr = 0
 					ri = retryInterval
 					ow = wi.bytesWritten
