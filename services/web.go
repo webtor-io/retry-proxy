@@ -153,7 +153,7 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 		if r.Context().Err() != nil {
 			return
 		}
-		if err != http.ErrAbortHandler && wi.statusCode < 500 {
+		if err != http.ErrAbortHandler && wi.statusCode < 502 {
 			return
 		}
 		ar := wi.Header().Get("Accept-Ranges")
@@ -161,10 +161,10 @@ func retryHandler(cl *http.Client, re *url.URL, h http.Handler) http.Handler {
 		if err != nil {
 			log.WithError(err).Warn("got abort error")
 		}
-		if wi.statusCode >= 500 {
+		if wi.statusCode >= 502 {
 			log.Warnf("got status code=%v url=%v", wi.statusCode, r.URL)
 		}
-		if (ar != "" && et != "") || wi.statusCode >= 500 {
+		if (ar != "" && et != "") || wi.statusCode >= 502 {
 			start := 0
 			end := -1
 			ra := r.Header.Get("Range")
