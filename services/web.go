@@ -93,12 +93,12 @@ func NewMyTransport() *MyTransport {
 		Transport: http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: (&net.Dialer{
-				Timeout:   60 * time.Second,
+				Timeout:   10 * time.Minute,
 				KeepAlive: 30 * time.Minute,
 			}).DialContext,
 			ForceAttemptHTTP2:     true,
 			MaxIdleConns:          500,
-			IdleConnTimeout:       15 * time.Minute,
+			IdleConnTimeout:       30 * time.Minute,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
