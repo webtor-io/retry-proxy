@@ -93,12 +93,12 @@ func NewMyTransport() *MyTransport {
 		Transport: http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 600 * time.Second,
+				Timeout:   60 * time.Second,
+				KeepAlive: 30 * time.Minute,
 			}).DialContext,
 			ForceAttemptHTTP2:     true,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
+			MaxIdleConns:          500,
+			IdleConnTimeout:       15 * time.Minute,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
@@ -268,7 +268,7 @@ func (s *Web) Serve() error {
 		}).Dial,
 	}
 	cl := &http.Client{
-		Timeout:   time.Second * 10,
+		Timeout:   10 * time.Minute,
 		Transport: tr,
 	}
 
