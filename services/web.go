@@ -268,7 +268,7 @@ func (s *Web) Serve() error {
 		}).Dial,
 	}
 	cl := &http.Client{
-		Timeout:   10 * time.Minute,
+		// Timeout:   10 * time.Minute,
 		Transport: tr,
 	}
 
