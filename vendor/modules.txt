@@ -117,23 +117,12 @@ github.com/vmihailenco/tagparser/v2/internal/parser
 # github.com/webtor-io/common-services v0.0.0-20210506124642-57d7ac936cc4
 ## explicit; go 1.15
 github.com/webtor-io/common-services
-# github.com/webtor-io/job-pooler v0.0.0-20211102211450-133131bca45c
-## explicit; go 1.17
-# github.com/webtor-io/lazymap v0.0.0-20211102210852-53c0103aa5a2
-## explicit; go 1.17
-# go.opentelemetry.io/otel v1.0.1
-## explicit; go 1.15
-# go.opentelemetry.io/otel/metric v0.24.0
-## explicit; go 1.15
-# go.opentelemetry.io/otel/trace v1.0.1
-## explicit; go 1.15
-# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-## explicit; go 1.17
+# golang.org/x/crypto v0.52.0
+## explicit; go 1.25.0
 golang.org/x/crypto/pbkdf2
-# golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359
-## explicit; go 1.17
+# golang.org/x/sys v0.45.0
+## explicit; go 1.25.0
 golang.org/x/sys/cpu
-golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # mellium.im/sasl v0.2.1
